@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="description" content="" />
+<!--[if IE]>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<![endif]-->
+<title>Magic Lights</title>
+<script type=text/javascript src="{{
+  url_for('static', filename='jquery.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='bootstrap.min.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='farbtastic.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='script.js') }}"></script>
+<link rel="stylesheet" href="{{
+  url_for('static', filename='farbtastic.css') }}" type="text/css" />
+<link rel="stylesheet" href="{{
+  url_for('static', filename='bootstrap.min.css') }}" type="text/css" />
+
+<script type=text/javascript>
+  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+
+{% block body %}{% endblock %}
