@@ -20,16 +20,16 @@
             <li class="dropdown">
               <a data-toggle="dropdown" class="dropdown-toggle" href="#">Colors<b class="caret"></b></a>
               <ul role="menu" class="dropdown-menu">
-                <li><a class="mode-static" id="static-white" href="?mode=static-color&color=ffffff">White</a></li>
-                <li><a class="mode-static" id="static-sunny" href="?mode=static-color&color=c8ca53">Sunny</a></li>
+                <li><a class="mode" id="staticColor-ffffff-nav" href="#">White</a></li>
+                <li><a class="mode" id="staticColor-c8ca53-nav" href="#">Sunny</a></li>
                 <!-- <li class="divider"></li> --> 
               </ul>
             </li>
-            <li><a class="mode" id="rainbow-cycle" href="?mode=rainbow-cycle">Rainbow Cycle</a></li>
+            <li><a class="mode rainbow-cycle-nav" id="" href="#">Rainbow Cycle</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">Status <span id="status">OK</span></a></li>
-            <li class="active"><a id="static-off" href="?mode=static-color&color=000000">Off</a></li>
+            <li class="active"><a class="mode" id="staticColor-000000-nav" href="#">Off</a></li>
           </ul>
         </div>
       </nav>
@@ -39,33 +39,31 @@
           <div class="col-sm-6 col-md-4 col-lg-3">
             <h2>Colors</h2>
             <div class="list-group">
-              <a class="list-group-item mode" id="static-off" href="?mode=static-color&color=000000">Off</a>
-              <a class="list-group-item mode" id="static-white" href="?mode=static-color&color=ffffff">White</a>
-              <a class="list-group-item mode" id="static-sunny" href="?mode=static-color&color=c8ca53">Sunny</a>
+              <a class="list-group-item mode" id="staticColor-000000" href="#">Off</a>
+              <a class="list-group-item mode" id="staticColor-ffffff" href="#">White</a>
+              <a class="list-group-item mode" id="staticColor-c8ca53" href="#">Sunny</a>
               <div class="hidden-sm hidden-xs">
-                <a class="list-group-item mode" id="static-light-blue" href="?mode=static-color&color=5297ad">Light Blue</a>
-                <a class="list-group-item mode" id="static-red" href="?mode=static-color&color=ff0000">Red</a>
-                <a class="list-group-item mode" id="static-green" href="?mode=static-color&color=00ff00">Green</a>
-                <a class="list-group-item mode" id="static-blue" href="?mode=static-color&color=0000ff">Blue</a>
-                <a class="list-group-item mode" id="static-purple" href="?mode=static-color&color=8f008f">Purple</a>
+                <a class="list-group-item mode static-color" id="0000ff" href="#">Blue</a>
+                <a class="list-group-item mode static-color" id="8f008f" href="#">Purple</a>
               </div>
               <a class="divider"></a>
-              <a class="list-group-item mode-choose-color" id="static" data-toggle="modal" data-target="#myModal" href="#">Other</a>
+              <a class="list-group-item mode-choose-color" id="staticColor" data-toggle="modal" data-target="#myModal" href="#">Other</a>
             </div>
           </div>
           <div class="col-sm-6 col-md-4 col-lg-3">
             <h2>Wheel</h2>
+
             <div class="list-group">
-              <a class="list-group-item mode" id="wheel-green" href="?mode=color-wheel&color=00ff00">Green</a>
-              <a class="list-group-item mode-choose-color" id="wheel" data-toggle="modal" data-target="#myModal" href="#">Other</a>
+              <a class="list-group-item mode" id="colorWheel-00ff00" href="#">Green</a>
+              <a class="list-group-item mode-choose-color" id="colorWheel" data-toggle="modal" data-target="#myModal" href="#">Other</a>
             </div>
           </div>
           <div class="col-sm-6 col-md-4 col-lg-3">
             <h2>Modes</h2>
             <div class="list-group">
               <!-- <a class="list-group-item mode" id="wheel" href="#">Color Wheel</a> -->
-              <a class="list-group-item mode" id="rainbow" href="?mode=rainbow">Rainbow</a>
-              <a class="list-group-item mode" id="rainbowCycle" href="?mode=rainbow-cycle">Rainbow Cycle</a>
+              <a class="list-group-item mode" id="rainbow" href="#">Rainbow</a>
+              <a class="list-group-item mode" id="rainbowCycle" href="#">Rainbow Cycle</a>
             </div>
           </div>
           <div class="clearfix visible-sm-block"></div>

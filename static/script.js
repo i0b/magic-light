@@ -2,7 +2,7 @@ $(document).ready(function() {
   var currentActiveElement = "";
   getActiveElement();
 
-  function setActiveElement(uiElement) {
+  function setActiveElement(uiElement, color) {
     $.ajax({
       type: "GET",
       url: $SCRIPT_ROOT + "/_setActiveElement",
@@ -25,32 +25,40 @@ $(document).ready(function() {
       }
     });
   };
+  function updateMagicLight(mode, color) {
+    $.ajax({
+      type: "GET",
+      url: $SCRIPT_ROOT + "/_setColor",
+      contentType: "application/json; charset=utf-8",
+      data: { color: color, mode: mode },
+      success: function(data) {
+        $('#status').text(data.value);
+      }
+    });
+  };
   $('.mode').click(function() {
-    setActiveElement(this.id);
+    var splitComponents=this.id.split('-');
+    var mode=splitComponents[0];
+    var color=splitComponents[1];
+    updateMagicLight(mode, color);
+
+    setActiveElement(this.id, color);
     updateActiveElement(this.id);
   });
 
   $('#picker').onload(function() {
-       $.ajax({
-          type: "GET",
-          url: $SCRIPT_ROOT + "/_getSetColor",
-          contentType: "application/json; charset=utf-8",
-          data: {},
-          success: function(data) {
-            this.setColor(data.value);
-          }
-      });
+    $.ajax({
+      type: "GET",
+      url: $SCRIPT_ROOT + "/_getSetColor",
+      contentType: "application/json; charset=utf-8",
+      data: {},
+      success: function(data) {
+        this.setColor(data.value);
+      }
+    });
   });
   $('#picker').farbtastic(function (color) {
-       $.ajax({
-          type: "GET",
-          url: $SCRIPT_ROOT + "/_setColor",
-          contentType: "application/json; charset=utf-8",
-          data: { color: color, mode: colorMode },
-          success: function(data) {
-            $('#status').text(data.value);
-          }
-      });
+    updateMagicLight(colorMode, color);
   });
   $('.mode-choose-color').click(function() {
     colorMode = this.id;

@@ -87,13 +87,13 @@ def setColor():
   mode = request.args.get('mode')
 
   try:
-    if mode == "static":
+    if mode == "staticColor":
       color = request.args.get('color')
       setColor = color
       rgbColor = hex_to_rgb (color)
       oneColor(strip, Color(rgbColor[0], rgbColor[1], rgbColor[2]))
       ret_data = {"value": "OK"}
-    elif mode == "wheel":
+    elif mode == "colorWheel":
       color = request.args.get('color')
       setColor = color
       rgbColor = hex_to_rgb (color)
