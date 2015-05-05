@@ -29,7 +29,7 @@ def theaterChase(e, strip, color, wait_ms=50):
       for i in range(0, strip.numPixels(), 3):
         strip.setPixelColor(i+j, 0)
 
-def rainbow(e, strip):
+def rainbow(strip):
   """Draw rainbow that fades across all pixels at once."""
   for i in range(strip.numPixels()):
     strip.setPixelColor(i, wheel(i))

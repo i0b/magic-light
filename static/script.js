@@ -1,39 +1,27 @@
 $(document).ready(function() {
   var currentActiveElement = "";
-  getActiveElement();
+  getState();
 
-  function setActiveElement(uiElement, color) {
-    $.ajax({
-      type: "GET",
-      url: $SCRIPT_ROOT + "/_setActiveElement",
-      contentType: "application/json; charset=utf-8",
-      data: { activeElement: uiElement }
-      });
-  };
   function updateActiveElement(uiElement) {
     $('#' + currentActiveElement).removeClass("active");
     $('#' + uiElement).addClass("active");
     currentActiveElement = uiElement;
   };
-  function getActiveElement() {
-    $.ajax({
-      type: "GET",
-      url: $SCRIPT_ROOT + "/_getActiveElement",
-      contentType: "application/json; charset=utf-8",
-      success: function(data) {
-        updateActiveElement(data.value);
-      }
+  function setState(element, color) {
+    $.post($SCRIPT_ROOT + "/_state", { element: element, color: color })
+    .done(function(data) {
+      $('#status').text(data.value);
+    });
+  };
+  function getState() {
+    $.get($SCRIPT_ROOT + "/_state", function(data) {
+      updateActiveElement(data.element);
     });
   };
   function updateMagicLight(mode, color) {
-    $.ajax({
-      type: "GET",
-      url: $SCRIPT_ROOT + "/_setColor",
-      contentType: "application/json; charset=utf-8",
-      data: { color: color, mode: mode },
-      success: function(data) {
-        $('#status').text(data.value);
-      }
+    $.post($SCRIPT_ROOT + "/_mode", { color: color, mode: mode })
+    .done(function(data) {
+      $('#status').text(data.value);
     });
   };
   $('.mode').click(function() {
@@ -42,20 +30,12 @@ $(document).ready(function() {
     var color=splitComponents[1];
     updateMagicLight(mode, color);
 
-    setActiveElement(this.id, color);
+    setState(this.id, color);
     updateActiveElement(this.id);
   });
-
-  $('#picker').onload(function() {
-    $.ajax({
-      type: "GET",
-      url: $SCRIPT_ROOT + "/_getSetColor",
-      contentType: "application/json; charset=utf-8",
-      data: {},
-      success: function(data) {
-        this.setColor(data.value);
-      }
-    });
+  $('#picker').ready(function() {
+    getState();
+    this.setColor(data.value);
   });
   $('#picker').farbtastic(function (color) {
     updateMagicLight(colorMode, color);
