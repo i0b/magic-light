@@ -1,25 +1,21 @@
 $(document).ready(function() {
+  var socket = io.connect('http://' + document.domain + ':' + location.port + '/socketio');
   var currentActiveElement = "";
-  getState();
 
-  function updateActiveElement(uiElement) {
+  socket.on('setUi', function(message) {
     $('#' + currentActiveElement).removeClass("active");
-    $('#' + uiElement).addClass("active");
-    currentActiveElement = uiElement;
-  };
+    $('#' + message.element).addClass("active");
+    currentActiveElement = message.element;
+  });
+
   function setState(element, color) {
     $.post($SCRIPT_ROOT + "/_state", { element: element, color: color })
     .done(function(data) {
       $('#status').text(data.value);
     });
   };
-  function getState() {
-    $.get($SCRIPT_ROOT + "/_state", function(data) {
-      updateActiveElement(data.element);
-    });
-  };
   function updateMagicLight(mode, color) {
-    $.post($SCRIPT_ROOT + "/_mode", { color: color, mode: mode })
+    $.post($SCRIPT_ROOT + "/_mode", )
     .done(function(data) {
       $('#status').text(data.value);
     });
@@ -28,13 +24,12 @@ $(document).ready(function() {
     var splitComponents=this.id.split('-');
     var mode=splitComponents[0];
     var color=splitComponents[1];
-    updateMagicLight(mode, color);
+    { color: color, mode: mode }
+    socket.emit('my event', {data: $('#emit_data').val()});
 
     setState(this.id, color);
-    updateActiveElement(this.id);
   });
   $('#picker').ready(function() {
-    getState();
     this.setColor(data.value);
   });
   $('#picker').farbtastic(function (color) {

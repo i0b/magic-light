@@ -3,6 +3,7 @@
 import time
 import json
 from flask import Flask, jsonify, render_template, request
+from flask.ext.socketio import SocketIO
 from neopixel import *
 from neopixel_animations import *
 from threading import Thread
@@ -21,11 +22,11 @@ data = {}
 with open(filename, 'r') as infile:
   data = json.load(infile)
 
-activeElement = data['element']
-activeColor   = data['color']
 threads = []
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
 
 def stopAnimations():
   while threads:
@@ -33,6 +34,11 @@ def stopAnimations():
     event.set()
     while thread.isAlive():
       time.sleep(1/1000.0)
+
+def updateAll():
+  ret_data = {"element": data['element']}
+  emit('setUi', ret_data, broadcast=True)
+
 
 @app.route('/')
 def index():
@@ -65,79 +71,51 @@ def index():
 
   return render_template('index.html')
 
-@app.route('/_mode', methods=['POST'])
-def mode():
-  stopAnimations()
+@socketio.on('update', namespace='/socketio')
+def magic_update(message):
   try:
-    mode = request.form['mode']
+    mode = message['mode']
+    data['element'] = message['element']
+
+    if message['color']:
+      data['color']   = message['color']
+      else:
+        data['color']   = "none"
+
+      with open(filename, 'w') as outfile:
+        json.dump(data, outfile)
 
     if mode == "rainbow":
+      stopAnimations()
       rainbow(strip)
     elif mode == "rainbowCycle":
+      stopAnimations()
       interrupt = Event()
       thread = Thread(target=rainbowCycle, args=(interrupt, strip,))
       threads.append((thread, interrupt))
       thread.start()
     else:
-      color = request.form['color']
+      color = message['color']
       currentColor = color
       rgbColor = hex_to_rgb (color)
 
       if mode == "staticColor":
+        stopAnimations()
         oneColor(strip, Color(rgbColor[0], rgbColor[1], rgbColor[2]))
-        ret_data = {"status": "OK"}
       elif mode == "colorWheel":
+        stopAnimations()
         interrupt = Event()
         thread = Thread(target=theaterChase, args=(interrupt, strip, Color(rgbColor[0], rgbColor[1], rgbColor[2]),))
         threads.append((thread, interrupt))
         thread.start()
-        ret_data = {"status": "OK"}
+    updateAll()
   except:
-    ret_data = {"status": "ERROR"}
+    print "ERROR: updating the magic light failed"
 
-  return jsonify(ret_data)
-
-@app.route('/_state', methods=['GET', 'POST'])
-def state():
-  global activeElement
-  global activeColor
-
-  if request.method == 'POST':
-    try:
-      if request.form['element']:
-        data['element'] = request.form['element']
-        activeElement   = request.form['element']
-
-        if request.form['color']:
-          data['color']   = request.form['color']
-          activeColor     = request.form['color']
-        else:
-          data['color']   = 'none'
-          activeColor     = 'none'
-
-        with open(filename, 'w') as outfile:
-          json.dump(data, outfile)
-
-        ret_data = {"status": "OK"}
-      else:
-        ret_data = {"status": "WRONG ARGUMENTS ERROR"}
-    except:
-      ret_data = {"status": "PARSING ERROR"}
-    return jsonify(ret_data)
-#  if request.method == 'POST' or request.method == 'PUT':
-#    fetchedData = jsonify(request.get_json(force=True))
-#    try:
-#      data['element'] = fetchedData['element']
-#      data['color']   = fetchedData['color']
-#      with open(filename, 'w') as outfile:
-#        json.dump(data, outfile)
-#      ret_data = {"status": "OK"}
-#    except:
-#      ret_data = {"status": "DATA ERROR - format of sent data not correct"}
-#    return jsonify(ret_data)
-  elif request.method == 'GET':
-    ret_data = {"element": activeElement, "color": activeColor}
-    return jsonify(ret_data)
+@socketio.on('connect', namespace='/socketio')
+def magic_connect():
+  ret_data = {"element": data['element']}
+  emit('setUi', ret_data)
 
 @app.route('/on', methods=['GET'])
 def on():
@@ -181,6 +159,7 @@ if __name__ == "__main__":
   except:
     exit(1)
 
-  app.run(host='0.0.0.0', port=80, debug=True)
+  socketio.run(app)
+  #app.run(host='0.0.0.0', port=80, debug=True)
 
 # -*- coding: utf-8 -*-
