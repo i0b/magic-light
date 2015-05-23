@@ -8,32 +8,20 @@ $(document).ready(function() {
     currentActiveElement = message.element;
   });
 
-  function setState(element, color) {
-    $.post($SCRIPT_ROOT + "/_state", { element: element, color: color })
-    .done(function(data) {
-      $('#status').text(data.value);
-    });
-  };
-  function updateMagicLight(mode, color) {
-    $.post($SCRIPT_ROOT + "/_mode", )
-    .done(function(data) {
-      $('#status').text(data.value);
-    });
-  };
   $('.mode').click(function() {
+    var data = {};
     var splitComponents=this.id.split('-');
-    var mode=splitComponents[0];
-    var color=splitComponents[1];
-    { color: color, mode: mode }
-    socket.emit('my event', {data: $('#emit_data').val()});
-
-    setState(this.id, color);
+    data.element = this.id;
+    data.mode    = splitComponents[0];
+    if (typeof splitComponents[1] !== 'undefined') {
+      data.color = splitComponents[1];
+    }
+    socket.emit('update', data, namespace='/socketio');
   });
   $('#picker').ready(function() {
-    this.setColor(data.value);
   });
   $('#picker').farbtastic(function (color) {
-    updateMagicLight(colorMode, color);
+    socket.emit('update', { color: color, mode: colorMode, element: "none" });
   });
   $('.mode-choose-color').click(function() {
     colorMode = this.id;

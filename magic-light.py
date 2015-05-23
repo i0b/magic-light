@@ -4,6 +4,7 @@ import time
 import json
 from flask import Flask, jsonify, render_template, request
 from flask.ext.socketio import SocketIO
+from flask.ext.socketio import emit
 from neopixel import *
 from neopixel_animations import *
 from threading import Thread
@@ -17,11 +18,7 @@ LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA     = 5       # DMA channel to use for generating signal (try 5)
 LED_INVERT  = False   # True to invert the signal (when using NPN transistor level shift)
 
-filename = '/srv/magic-light/data'
-data = {}
-with open(filename, 'r') as infile:
-  data = json.load(infile)
-
+data = {"color": "000000", "element": "staticColor-000000"}
 threads = []
 
 app = Flask(__name__)
@@ -36,54 +33,26 @@ def stopAnimations():
       time.sleep(1/1000.0)
 
 def updateAll():
-  ret_data = {"element": data['element']}
-  emit('setUi', ret_data, broadcast=True)
-
+  emit('setUi', {"element": data['element']}, broadcast=True)
 
 @app.route('/')
 def index():
-  stopAnimations()
-
-  try:
-    mode = request.args.get('mode')
-    if mode == "static-color":
-      color = request.args.get('color')
-      currentColor = color
-      rgbColor = hex_to_rgb (color)
-      oneColor(strip, Color(rgbColor[0], rgbColor[1], rgbColor[2]))
-    elif mode == "color-wheel":
-      color = request.args.get('color')
-      currentColor = color
-      rgbColor = hex_to_rgb (color)
-      interrupt = Event()
-      thread = Thread(target=theaterChase, args=(interrupt, strip, Color(rgbColor[0], rgbColor[1], rgbColor[2]),))
-      threads.append((thread, interrupt))
-      thread.start()
-    elif mode == "rainbow":
-      rainbow(strip)
-    elif mode == "rainbowCycle":
-      interrupt = Event()
-      thread = Thread(target=rainbowCycle, args=(interrupt, strip,))
-      threads.append((thread, interrupt))
-      thread.start()
-  except:
-    print "no valid mode given"
-
   return render_template('index.html')
 
 @socketio.on('update', namespace='/socketio')
-def magic_update(message):
+def magic_update(message, namespace):
   try:
-    mode = message['mode']
-    data['element'] = message['element']
+    if 'mode' in message and 'element' in message:
+      mode = message['mode']
+      data['element'] = message['element']
+    else:
+      rainbow(strip)
+      return
 
-    if message['color']:
+    if 'color' in message:
       data['color']   = message['color']
-      else:
-        data['color']   = "none"
-
-      with open(filename, 'w') as outfile:
-        json.dump(data, outfile)
+    else:
+      data['color']   = "none"
 
     if mode == "rainbow":
       stopAnimations()
@@ -114,8 +83,7 @@ def magic_update(message):
 
 @socketio.on('connect', namespace='/socketio')
 def magic_connect():
-  ret_data = {"element": data['element']}
-  emit('setUi', ret_data)
+  emit('setUi', {"element": data['element']})
 
 @app.route('/on', methods=['GET'])
 def on():
@@ -159,7 +127,7 @@ if __name__ == "__main__":
   except:
     exit(1)
 
-  socketio.run(app)
+  socketio.run(app, host='0.0.0.0', port=80)
   #app.run(host='0.0.0.0', port=80, debug=True)
 
 # -*- coding: utf-8 -*-
