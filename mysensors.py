@@ -1,45 +1,41 @@
-import fcntl, os, subprocess, time, re, serial
+import re, socket
 
 def startGateway():
-  global gatewayprocess
-  gatewayprocess = subprocess.Popen(['PiGatewaySerial'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-  fcntl.fcntl(gatewayprocess.stdout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
+  HOST = '192.168.178.166'
+  PORT = 5003
+
+  global gatewaysocket
+  gatewaysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  gatewaysocket.connect((HOST, PORT))
 
 def stopGateway():
-  subprocess.call(["killall", "GatewaySerial"])
+  gatewaysocket.close()
 
 def updateSensors():
-  processoutput = ''
   try:
-    processoutput = gatewayprocess.stdout.read()
-  except IOError:
-    pass
-
-  if "read:" in processoutput:
     sensorupdates = []
-    for line in processoutput.split('\n'):
+    try:
+      line = gatewaysocket.makefile().readline()
+      (nodeId, sensorId, messageType, ackMessage, sensorType, sensorValue) = [t(s) for t,s in zip((int,int,int,int,int,float),re.search('(\d+);(\d+);(\d+);(\d+);(\d+);([\d.]+)$',line).groups())]
+      data = {"sensorId": sensorId, "sensorType": sensorType, "sensorValue": sensorValue}
       try:
-        (s, c, t, pt, l, v) = [t(s) for t,s in zip((int,int,int,int,int,float),re.search('read: 20-20-0 s=(\d+),c=(\d+),t=(\d+),pt=(\d+),l=(\d+):([\d.]+)$',line).groups())]
-        data = {"sensorId": s, "sensorType": t, "sensorValue": v}
-        try:
-          index = next(index for (index, d) in enumerate(sensorupdates) if d["sensorId"] == s)
-          sensorupdates[index] = data
-        except StopIteration:
-          sensorupdates.append(data)
-      except AttributeError:
-        #print("ERR: ", line)
-        pass
+        index = next(index for (index, d) in enumerate(sensorupdates) if d["sensorId"] == s)
+        sensorupdates[index] = data
+      except StopIteration:
+        sensorupdates.append(data)
+    except AttributeError:
+      pass
     return sensorupdates
-  else:
+  except IOError:
     return False
 
 def uplightOn():
-  serialConnection = serial.Serial('/dev/ttyMySensorsGateway', 9600)
-  serialConnection.write('20;3;1;0;2;0\n')
+  COMMAND = "20;3;1;0;2;0\n"
+  gatewaysocket.send(COMMAND)
 
 def uplightOff():
-  serialConnection = serial.Serial('/dev/ttyMySensorsGateway', 9600)
-  serialConnection.write('20;3;1;0;2;1\n')
+  COMMAND = "20;3;1;0;2;1\n"
+  gatewaysocket.send(COMMAND)
 
 if __name__ == '__main__':
   startGateway()
