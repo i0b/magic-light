@@ -10,15 +10,19 @@
 <script type=text/javascript src="{{
   url_for('static', filename='jquery.js') }}"></script>
 <script type=text/javascript src="{{
+  url_for('static', filename='farbtastic.js') }}"></script>
+<script type=text/javascript src="{{
   url_for('static', filename='bootstrap.min.js') }}"></script>
 <script type=text/javascript src="{{
-  url_for('static', filename='farbtastic.js') }}"></script>
+  url_for('static', filename='bootstrap-switch.min.js') }}"></script>
 <script type=text/javascript src="{{
   url_for('static', filename='script.js') }}"></script>
 <link rel="stylesheet" href="{{
   url_for('static', filename='farbtastic.css') }}" type="text/css" />
 <link rel="stylesheet" href="{{
   url_for('static', filename='bootstrap.min.css') }}" type="text/css" />
+<link rel="stylesheet" href="{{
+  url_for('static', filename='bootstrap-switch.min.css') }}" type="text/css" />
 
 <script type=text/javascript>
   var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
