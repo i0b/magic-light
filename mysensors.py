@@ -1,6 +1,6 @@
 import re, socket
 
-def startGateway():
+def start():
   HOST = '192.168.178.166'
   PORT = 5003
 
@@ -8,10 +8,10 @@ def startGateway():
   gatewaysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   gatewaysocket.connect((HOST, PORT))
 
-def stopGateway():
+def stop():
   gatewaysocket.close()
 
-def updateSensors():
+def update():
   try:
     sensorupdates = []
     try:
