@@ -16,30 +16,26 @@ data = {"color": "000000",
         "relays": {"uplight": "off"}}
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ohMySecretKey!'
+app.config['SECRET_KEY'] = 'SecretKey!'
 socketio = SocketIO(app)
 
-# sensor helper functions
-def updateSensorValues(newSensorValues):
-  for sensor in data['sensors']:
-    for newSensorValue in newSensorValues:
-      if sensor['sensorId'] == newSensorValue['sensorId'] and sensor['sensorType'] == newSensorValue['sensorType']:
-        data['sensors'][newSensorValue['sensorId']]['sensorValue'] = newSensorValue['sensorValue']
 
-def startFetchAndUpdateSensorValues():
-  sensorValues = mysensors.update()
-  if sensorValues:
-    updateSensorValues(sensorValues)
-    updateAll('sensors', sensorValues)
-  threading.Timer(SENSOR_UPDATE_INTERVAL, startFetchAndUpdateSensorValues).start()
+def startUpdateSensorValuesWorker():
+  newSensorValues = mysensors.update()
+  if newSensorValues:
+    for sensor in data['sensors']:
+      for newSensorValue in newSensorValues:
+        if sensor['sensorId'] == newSensorValue['sensorId'] and sensor['sensorType'] == newSensorValue['sensorType']:
+          data['sensors'][newSensorValue['sensorId']]['sensorValue'] = newSensorValue['sensorValue']
+    updateWebClients('sensors', newSensorValues)
+  threading.Timer(SENSOR_UPDATE_INTERVAL, startUpdateSensorValuesWorker).start()
 
 # update clients with new data using socket.io
-def updateAll(service, payload):
+def updateWebClients(service, payload):
   if service == 'mode':
     socketio.emit('setUi', {"element": data['element'], "color": data['color'], "relays": data['relays']}, namespace='/socketio')
   elif service == 'sensors':
     socketio.emit('setSensorValues', payload, namespace='/socketio')
-
 
 
 @app.route('/')
@@ -83,14 +79,14 @@ def color():
 def uplight_route_on():
   mysensors.uplightOn()
   data['relays']['uplight'] = "on"
-  updateAll('mode', data)
+  updateWebClients('mode', data)
   return "on"
 
 @app.route('/uplight/off')
 def uplight_route_off():
   mysensors.uplightOff()
   data['relays']['uplight'] = "off"
-  updateAll('mode', data)
+  updateWebClients('mode', data)
   return "off"
 
 
@@ -143,7 +139,7 @@ def magic_update(message, namespace):
 
       elif mode == "colorWheel":
         neopixel-control.theaterChaseThreaded()
-    updateAll('mode', data)
+    updateWebClients('mode', data)
   except:
     print "ERROR: updating the magic light failed"
 
@@ -151,7 +147,7 @@ def magic_update(message, namespace):
 if __name__ == "__main__":
   neopixel-control.start()
   mysensors.start()
-  startFetchAndUpdateSensorValues()
+  startUpdateSensorValuesWorker()
 
   socketio.run(app, host='0.0.0.0', port=80)
 

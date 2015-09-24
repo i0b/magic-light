@@ -44,6 +44,24 @@ $(document).ready(function() {
     setRelays(message.relays);
   });
 
+  $('.all-off').click(function() {
+    // turn off relay
+    data = {};
+    data.element  = "uplight-power";
+    data.mode     = "power";
+    data.relay    = "uplight";
+    data.state    = "off";
+    socket.emit('update', data, namespace='/socketio');
+    //$('#uplight-power-checkbox').bootstrapSwitch('state', false);
+    
+    // turn of neopixel
+    var data = {};
+    data.element  = "staticColor-000000";
+    data.mode     = "staticColor";
+    data.color    = "000000";
+    socket.emit('update', data, namespace='/socketio');
+  }
+
   $('.pins').click(function() {
     var data = {};
     var splitComponents=this.id.split('-');
