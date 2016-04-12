@@ -28,7 +28,7 @@
   var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 </script>
 
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+<script type="text/javascript" src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script type="text/javascript" charset="utf-8">
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     socket.on('connect', function() {

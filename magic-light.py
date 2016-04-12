@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 import json, threading
-import mysensors, neopixel-control, gpio
+from neopixel import Color
+import mysensors, neopixel_control, gpio
 from flask import Flask, jsonify, render_template, request
 from flask.ext.socketio import SocketIO, send, emit
 #from flask import copy_current_request_context
@@ -10,9 +11,9 @@ SENSOR_UPDATE_INTERVAL = 5
 #database set with default values
 data = {"color": "000000", 
         "element": "staticColor-000000", 
-        "sensors": [{"sensorId": 0, "sensorType": 23, "sensorValue": 0}, 
-                    {"sensorId": 1, "sensorType": 0, "sensorValue": 0}, 
-                    {"sensorId": 2, "sensorType": 1, "sensorValue": 0}], 
+        "sensors": [{"sensorId": 0, "sensorType": 23, "sensorDescription": "Light", "sensorValue": 0}, 
+                    {"sensorId": 1, "sensorType": 0, "sensorDescription": "Temperature", "sensorValue": 0}, 
+                    {"sensorId": 2, "sensorType": 1, "sensorDescription": "Humidity", "sensorValue": 0}], 
         "relays": {"uplight": "off"}}
 
 app = Flask(__name__)
@@ -22,7 +23,10 @@ socketio = SocketIO(app)
 
 def startUpdateSensorValuesWorker():
   newSensorValues = mysensors.update()
-  if newSensorValues:
+  if newSensorValues is IOError:
+    mysensors.stop()
+    mysensors.start()
+  elif newSensorValues:
     for sensor in data['sensors']:
       for newSensorValue in newSensorValues:
         if sensor['sensorId'] == newSensorValue['sensorId'] and sensor['sensorType'] == newSensorValue['sensorType']:
@@ -52,17 +56,22 @@ def wall_route_on():
     percent = int(request.args.get('p'))
     if ( percent >= 0 and percent <= 100 ):
       intensity = int(percent*255.0/100.0)
-      neopixel-control.oneColor(Color(intensity, intensity, intensity))
+      neopixel_control.oneColor(Color(intensity, intensity, intensity))
     else:
-      neopixel-control.oneColor(Color(255, 255, 255))
+      neopixel_control.oneColor(Color(255, 255, 255))
   except:
-    neopixel-control.oneColor(Color(255, 255, 255))
-  return "on"
+    neopixel_control.oneColor(Color(255, 255, 255))
+  return "ok"
 
 @app.route('/wall/off')
 def wall_route_off():
-  neopixel-control.oneColor(Color(0, 0, 0))
-  return "off"
+  neopixel_control.oneColor(Color(0, 0, 0))
+  return "ok"
+
+@app.route('/wall/rainbow')
+def wall_route_rainbow():
+  neopixel_control.rainbowCycleThreaded()
+  return "ok"
 
 @app.route('/wall/color/', methods=['GET'])
 def color():
@@ -70,7 +79,7 @@ def color():
     red =   int ( request.args.get('r') )
     green = int ( request.args.get('g') )
     blue =  int ( request.args.get('b') )
-    neopixel-control.oneColor(Color(red,green,blue))
+    neopixel_control.oneColor(Color(red,green,blue))
     return "OK"
   except:
     return "There was an error changing the color."
@@ -92,6 +101,7 @@ def uplight_route_off():
 
 @socketio.on('connect', namespace='/socketio')
 def magic_connect():
+  print 'client socket connected'
   emit('setUi', {"element": data['element'], "color": data['color'], "relays": data['relays']})
   emit('setSensorValues', data['sensors'])
 
@@ -124,28 +134,29 @@ def magic_update(message, namespace):
           data['relays'][message['relay']] = message['state'];
 
     elif mode == "rainbow":
-      neopixel-control.rainbow()
+      neopixel_control.rainbow()
 
     elif mode == "rainbowCycle":
-      neopixel-control.rainbowCycleThreaded()
+      neopixel_control.rainbowCycleThreaded()
 
     else:
       color = message['color']
-      currentColor = color
-      rgbColor = hex_to_rgb (color)
+      color = color.lstrip('#')
+      lv = len(color)
+      rgbColor = tuple(int(color[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
       if mode == "staticColor":
-        neopixel-control.oneColor(Color(rgbColor[0], rgbColor[1], rgbColor[2]))
+        neopixel_control.oneColor(Color(rgbColor[0], rgbColor[1], rgbColor[2]))
 
       elif mode == "colorWheel":
-        neopixel-control.theaterChaseThreaded()
+        neopixel_control.theaterChaseThreaded(Color(rgbColor[0], rgbColor[1], rgbColor[2]))
     updateWebClients('mode', data)
   except:
     print "ERROR: updating the magic light failed"
 
 
 if __name__ == "__main__":
-  neopixel-control.start()
+  neopixel_control.start()
   mysensors.start()
   startUpdateSensorValuesWorker()
 

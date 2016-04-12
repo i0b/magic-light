@@ -60,7 +60,7 @@ $(document).ready(function() {
     data.mode     = "staticColor";
     data.color    = "000000";
     socket.emit('update', data, namespace='/socketio');
-  }
+  });
 
   $('.pins').click(function() {
     var data = {};

@@ -35,7 +35,6 @@ def colorWipe(e, color, wait_ms=50, strip=default_strip):
 
 def theaterChase(e, color, wait_ms=50, strip=default_strip):
   """Movie theater light style chaser animation."""
-  stopAnimation()
   while not e.isSet():
     for j in range(3):
       for i in range(0, strip.numPixels(), 3):
@@ -45,9 +44,10 @@ def theaterChase(e, color, wait_ms=50, strip=default_strip):
       for i in range(0, strip.numPixels(), 3):
         strip.setPixelColor(i+j, 0)
 
-def theaterChaseThreaded()
+def theaterChaseThreaded(color):
+  stopAnimation()
   interrupt = Event()
-  thread = Thread(target=theaterChase, args=(interrupt, Color(rgbColor[0], rgbColor[1], rgbColor[2]),))
+  thread = Thread(target=theaterChase, args=(interrupt, color,))
   threads.append((thread, interrupt))
   thread.start()
 
@@ -60,7 +60,6 @@ def rainbow(strip=default_strip):
 
 def rainbowCycle(e, wait_ms=50, strip=default_strip):
   """Draw rainbow that uniformly distributes itself across all pixels."""
-  stopAnimation()
   j=0
   while not e.isSet():
     j=j+1
@@ -69,7 +68,8 @@ def rainbowCycle(e, wait_ms=50, strip=default_strip):
     strip.show()
     time.sleep(wait_ms/1000.0)
 
-def rainbowCycleThreaded()
+def rainbowCycleThreaded():
+  stopAnimation()
   interrupt = Event()
   thread = Thread(target=rainbowCycle, args=(interrupt,))
   threads.append((thread, interrupt))
@@ -99,11 +99,6 @@ def wheel(pos):
   else:
     pos -= 170
     return Color(0, pos * 3, 255 - pos * 3)
-
-def hex_to_rgb(value):
-  value = value.lstrip('#')
-  lv = len(value)
-  return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
 def start():
   default_strip.begin()
